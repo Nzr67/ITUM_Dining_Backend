@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/home/nazar_67/Itum dining backend/venv/bin/python3" "$0" "$@"
+'''exec' "/home/nazar_67/Itum Dining/ITUM_Dining_Backend/venv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from .routers import auth
+from .routers import auth, canteen
 
 app = FastAPI(title="ITUM Dining API")
 
@@ -19,3 +19,4 @@ app.add_middleware(
 
 
 app.include_router(auth.router)
+app.include_router(canteen.router)

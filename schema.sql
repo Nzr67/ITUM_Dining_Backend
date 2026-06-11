@@ -25,6 +25,7 @@ END $$;
 CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT,
+    student_id TEXT,
     division TEXT,
     reputation FLOAT DEFAULT 1.0,
     total_updates INTEGER DEFAULT 0,

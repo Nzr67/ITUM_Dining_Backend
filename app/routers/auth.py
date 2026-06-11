@@ -31,6 +31,7 @@ class SignupRequest(BaseModel):
     email: EmailStr
     password: str
     division: str
+    student_id: str
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -39,6 +40,7 @@ class LoginRequest(BaseModel):
 class ProfileUpdate(BaseModel):
     full_name: Optional[str] = None
     division: Optional[str] = None
+    student_id: Optional[str] = None
 
 # Helper to verify token and get user
 async def get_current_user(authorization: str = Header(None)):
@@ -65,10 +67,26 @@ async def signup_user(payload: SignupRequest):
             "options": {
                 "data": {
                     "full_name": payload.name,
-                    "division": payload.division
+                    "division": payload.division,
+                    "student_id": payload.student_id
                 }
             }
         })
+        
+        # Explicitly create profile entry
+        try:
+            supabase.table("profiles").insert({
+                "id": auth_response.user.id,
+                "full_name": payload.name,
+                "division": payload.division,
+                "student_id": payload.student_id,
+                "reputation": 1.0,
+                "total_updates": 0,
+                "correct_updates": 0
+            }).execute()
+        except Exception as profile_err:
+            print(f"Profile creation error: {profile_err}")
+            
         return {"message": "User registered successfully!", "user_id": auth_response.user.id}
     except Exception as error:
         raise HTTPException(status_code=400, detail=str(error))
@@ -103,6 +121,8 @@ async def update_profile(payload: ProfileUpdate, authorization: str = Header(Non
         update_data["full_name"] = payload.full_name
     if payload.division:
         update_data["division"] = payload.division
+    if payload.student_id:
+        update_data["student_id"] = payload.student_id
         
     try:
         # 1. Update user metadata
@@ -119,6 +139,18 @@ async def update_profile(payload: ProfileUpdate, authorization: str = Header(Non
             supabase.table("profiles").insert({"id": user.id, **update_data}).execute()
             
         return {"message": "Profile updated", "user": auth_response.user}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/leaderboard")
+async def get_leaderboard(limit: int = 20):
+    try:
+        res = supabase.table("profiles")\
+            .select("full_name, student_id, total_updates, reputation, avatar_url")\
+            .order("total_updates", desc=True)\
+            .limit(limit)\
+            .execute()
+        return res.data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

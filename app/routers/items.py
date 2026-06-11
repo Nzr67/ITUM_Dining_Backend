@@ -83,7 +83,7 @@ async def get_recent_updates():
     # Attempting join, but falling back if it fails due to missing FK in DB
     try:
         res = supabase.table('item_updates')\
-            .select('*, menu_items(name), profiles(full_name)')\
+            .select('*, menu_items(name, canteen), profiles(full_name)')\
             .order('created_at', desc=True)\
             .limit(10)\
             .execute()
@@ -92,7 +92,7 @@ async def get_recent_updates():
         print(f"Join failed: {e}")
         # Fallback to simple query without profiles join
         res = supabase.table('item_updates')\
-            .select('*, menu_items(name)')\
+            .select('*, menu_items(name, canteen)')\
             .order('created_at', desc=True)\
             .limit(10)\
             .execute()
@@ -102,7 +102,7 @@ async def get_recent_updates():
 async def get_item_history(item_id: str):
     try:
         res = supabase.table('item_updates')\
-            .select('*, profiles(full_name)')\
+            .select('*, menu_items(canteen), profiles(full_name)')\
             .eq('item_id', item_id)\
             .order('created_at', desc=True)\
             .limit(20)\

@@ -105,12 +105,20 @@ async def update_profile(payload: ProfileUpdate, authorization: str = Header(Non
         update_data["division"] = payload.division
         
     try:
-        # Using service_role/admin to update user metadata
-        response = supabase.auth.admin.update_user_by_id(
+        # 1. Update user metadata
+        auth_response = supabase.auth.admin.update_user_by_id(
             user.id,
             attributes={"user_metadata": {**user.user_metadata, **update_data}}
         )
-        return {"message": "Profile updated", "user": response.user}
+        
+        # 2. Update profiles table
+        profile_res = supabase.table("profiles").select("*").eq("id", user.id).execute()
+        if profile_res.data:
+            supabase.table("profiles").update({**update_data, "updated_at": "now()"}).eq("id", user.id).execute()
+        else:
+            supabase.table("profiles").insert({"id": user.id, **update_data}).execute()
+            
+        return {"message": "Profile updated", "user": auth_response.user}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

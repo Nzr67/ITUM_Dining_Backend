@@ -1,11 +1,11 @@
 import math
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional, Tuple
-from supabase import Client
+from ..database import supabase
 
 class ConsensusAlgorithm:
-    def __init__(self, supabase: Client):
-        self.supabase = supabase
+    def __init__(self, db_client=None):
+        self.supabase = db_client or supabase
         self.config = {}
 
     async def load_config(self):
